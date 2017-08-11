@@ -42,6 +42,19 @@ from pipeline import apply_undist,getSobel
 from pipeline import abs_sobel_thresh,mag_thresh,dir_threshold
 from pipeline import color_transform
 
+#Get perspective transformation matrix
+str_img =  mpimg.imread('test_images/straight_lines1.jpg')
+undist_str_img = apply_undist(str_img, mtx, dist)
+#src = np.float32([[200,720],[620,430],[650,430],[1120,720]])
+src = np.float32([[200,720],[590,450],[680,450],[1120,720]])
+dst = np.float32([[420,720],[420,0],[870,0],[870,720]])
+cv2.polylines(undist_str_img, np.int32([src]), True, (255,0,0), thickness=5)
+cv2.polylines(undist_str_img, np.int32([dst]), True, (0,0,255), thickness=5)
+cv2.imwrite("undist_perslines_str_img.png",undist_str_img)
+#cv2.imshow("undist_str_img",undist_str_img)
+#cv2.waitKey(0)
+M = cv2.getPerspectiveTransform(src,dst)
+
 for fname in test_images:
     #read each image
     img = mpimg.imread(fname)
@@ -57,28 +70,42 @@ for fname in test_images:
     sobelx, sobely = getSobel(undist, sobel_kernel=15)
 
     # Apply each of the thresholding functions
-    gradx, grady = abs_sobel_thresh(sobelx, sobely, thresh=(30, 100))
-    mag_binary = mag_thresh(sobelx, sobely, thresh=(30, 100))
+    gradx, grady = abs_sobel_thresh(sobelx, sobely, thresh=(20, 100))
+    mag_binary = mag_thresh(sobelx, sobely, thresh=(20, 100))
     dir_binary = dir_threshold(sobelx, sobely, thresh=(0.7, 1.3))
 
     combined_grad = np.zeros_like(dir_binary)
     combined_grad[((gradx == 1) & (grady == 1)) & ((mag_binary == 1) & (dir_binary == 1))] = 1
     
     #write the gradient binary image
-    #save_fname = os.path.join(outpath, 'gradient_'+os.path.basename(fname))
-    #plt.figure()
-    #plt.imshow(combined_grad,cmap='gray')
-    #plt.savefig(save_fname)
+    save_fname = os.path.join(outpath, 'gradient_'+os.path.basename(fname))
+    plt.figure()
+    plt.imshow(combined_grad,cmap='gray')
+    plt.savefig(save_fname)
 
     #Apply color transform
-    schannel_thres = color_transform(undist, thresh=(170,255))
+    schannel_thres = color_transform(undist, thresh=(130,255))
     combined_grad_color = np.zeros_like(schannel_thres)
     combined_grad_color[(combined_grad == 1) | (schannel_thres == 1)] = 1
+    color_binary = np.dstack((np.zeros_like(schannel_thres),combined_grad, schannel_thres))
 
     #write the gradient and color thresholding binary image
-    save_fname = os.path.join(outpath, 'gradient_color_thres_'+os.path.basename(fname))
+    save_fname = os.path.join(outpath, 'gradient_color_thres_img'+os.path.basename(fname))
     plt.figure()
-    plt.imshow(combined_grad_color,cmap='gray')
+    plt.subplot(121)
+    plt.imshow(color_binary)
+    plt.subplot(122)
+    plt.imshow(undist)
+    #plt.show()
+    plt.savefig(save_fname)
+
+    #Apply perspective transform
+    img_size = (combined_grad_color.shape[1],combined_grad_color.shape[0])
+    pers_binary = cv2.warpPerspective(combined_grad_color, M, img_size)
+    save_fname = os.path.join(outpath, 'pers_binary_'+os.path.basename(fname))
+    plt.figure()
+    plt.imshow(pers_binary,cmap='gray')
+    #plt.show()
     plt.savefig(save_fname)
 
 
