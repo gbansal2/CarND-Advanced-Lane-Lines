@@ -41,6 +41,7 @@ outpath = 'output_images'
 from pipeline import apply_undist,getSobel
 from pipeline import abs_sobel_thresh,mag_thresh,dir_threshold
 from pipeline import color_transform
+from finding_lines import find_lines
 
 #Get perspective transformation matrix
 str_img =  mpimg.imread('test_images/straight_lines1.jpg')
@@ -50,7 +51,7 @@ src = np.float32([[200,720],[590,450],[680,450],[1120,720]])
 dst = np.float32([[420,720],[420,0],[870,0],[870,720]])
 cv2.polylines(undist_str_img, np.int32([src]), True, (255,0,0), thickness=5)
 cv2.polylines(undist_str_img, np.int32([dst]), True, (0,0,255), thickness=5)
-cv2.imwrite("undist_perslines_str_img.png",undist_str_img)
+#cv2.imwrite("undist_perslines_str_img.png",undist_str_img)
 #cv2.imshow("undist_str_img",undist_str_img)
 #cv2.waitKey(0)
 M = cv2.getPerspectiveTransform(src,dst)
@@ -78,10 +79,10 @@ for fname in test_images:
     combined_grad[((gradx == 1) & (grady == 1)) & ((mag_binary == 1) & (dir_binary == 1))] = 1
     
     #write the gradient binary image
-    save_fname = os.path.join(outpath, 'gradient_'+os.path.basename(fname))
-    plt.figure()
-    plt.imshow(combined_grad,cmap='gray')
-    plt.savefig(save_fname)
+    #save_fname = os.path.join(outpath, 'gradient_'+os.path.basename(fname))
+    #plt.figure()
+    #plt.imshow(combined_grad,cmap='gray')
+    #plt.savefig(save_fname)
 
     #Apply color transform
     schannel_thres = color_transform(undist, thresh=(130,255))
@@ -90,23 +91,28 @@ for fname in test_images:
     color_binary = np.dstack((np.zeros_like(schannel_thres),combined_grad, schannel_thres))
 
     #write the gradient and color thresholding binary image
-    save_fname = os.path.join(outpath, 'gradient_color_thres_img'+os.path.basename(fname))
-    plt.figure()
-    plt.subplot(121)
-    plt.imshow(color_binary)
-    plt.subplot(122)
-    plt.imshow(undist)
+    #save_fname = os.path.join(outpath, 'gradient_color_thres_img'+os.path.basename(fname))
+    #plt.figure()
+    #plt.subplot(121)
+    #plt.imshow(color_binary)
+    #plt.subplot(122)
+    #plt.imshow(undist)
     #plt.show()
-    plt.savefig(save_fname)
+    #plt.savefig(save_fname)
 
     #Apply perspective transform
     img_size = (combined_grad_color.shape[1],combined_grad_color.shape[0])
     pers_binary = cv2.warpPerspective(combined_grad_color, M, img_size)
-    save_fname = os.path.join(outpath, 'pers_binary_'+os.path.basename(fname))
-    plt.figure()
-    plt.imshow(pers_binary,cmap='gray')
+    #save_fname = os.path.join(outpath, 'pers_binary_'+os.path.basename(fname))
+    #plt.figure()
+    #plt.imshow(pers_binary,cmap='gray')
     #plt.show()
-    plt.savefig(save_fname)
+    #plt.savefig(save_fname)
+
+    #Apply fit
+    print(pers_binary.shape)
+    [left_fit, right_fit] = find_lines(pers_binary)
+
 
 
 
