@@ -55,6 +55,7 @@ cv2.polylines(undist_str_img, np.int32([dst]), True, (0,0,255), thickness=5)
 #cv2.imshow("undist_str_img",undist_str_img)
 #cv2.waitKey(0)
 M = cv2.getPerspectiveTransform(src,dst)
+Minv = cv2.getPerspectiveTransform(dst,src)
 
 for fname in test_images:
     #read each image
@@ -110,9 +111,32 @@ for fname in test_images:
     #plt.savefig(save_fname)
 
     #Apply fit
-    print(pers_binary.shape)
-    [left_fit, right_fit] = find_lines(pers_binary)
+    #print(pers_binary.shape)
+    [left_fitx, right_fitx, ploty,
+            left_curverad, right_curverad] = find_lines(pers_binary,fname)
 
+    warp_zero = np.zeros_like(pers_binary).astype(np.uint8)
+    color_warp = np.dstack((warp_zero, warp_zero, warp_zero))
+
+    # Recast the x and y points into usable format for cv2.fillPoly()
+    pts_left = np.array([np.transpose(np.vstack([left_fitx, ploty]))])
+    pts_right = np.array([np.flipud(np.transpose(np.vstack([right_fitx, ploty])))])
+    pts = np.hstack((pts_left, pts_right))
+
+    # Draw the lane onto the warped blank image
+    cv2.fillPoly(color_warp, np.int_([pts]), (0,255, 0))
+
+    # Warp the blank back to original image space using inverse perspective matrix (Minv)
+    newwarp = cv2.warpPerspective(color_warp, Minv, (undist.shape[1], undist.shape[0])) 
+    # Combine the result with the original image
+    result = cv2.addWeighted(undist, 1, newwarp, 0.3, 0)
+    #fig2 = plt.figure()
+    #plt.imshow(result)
+    #plt.text(600,150,'left curvature   = %6.2f m\nright curvature = %6.2f m \n' %(left_curverad,right_curverad), color='white')
+    ##plt.show()
+    #save_fname = os.path.join('output_images', 'rewarp_lines_'+os.path.basename(fname))
+    #plt.savefig(save_fname)
+    #plt.close(fig2)
 
 
 
