@@ -139,6 +139,52 @@ for fname in test_images:
     #plt.close(fig2)
 
 
+def process_image(image):
+    #undistort the img
+    undist = apply_undist(image, mtx, dist)
+
+    #apply sobel
+    sobelx, sobely = getSobel(undist, sobel_kernel=15)
+
+    # Apply each of the thresholding functions
+    gradx, grady = abs_sobel_thresh(sobelx, sobely, thresh=(20, 100))
+    mag_binary = mag_thresh(sobelx, sobely, thresh=(20, 100))
+    dir_binary = dir_threshold(sobelx, sobely, thresh=(0.7, 1.3))
+
+    combined_grad = np.zeros_like(dir_binary)
+    combined_grad[((gradx == 1) & (grady == 1)) & ((mag_binary == 1) & (dir_binary == 1))] = 1
+
+    #Apply color transform
+    schannel_thres = color_transform(undist, thresh=(130,255))
+    combined_grad_color = np.zeros_like(schannel_thres)
+    combined_grad_color[(combined_grad == 1) | (schannel_thres == 1)] = 1
+
+    #Apply perspective transform
+    img_size = (combined_grad_color.shape[1],combined_grad_color.shape[0])
+    pers_binary = cv2.warpPerspective(combined_grad_color, M, img_size)
+
+    #Apply fit
+    [left_fitx, right_fitx, ploty,
+            left_curverad, right_curverad] = find_lines(pers_binary,fname)
+
+    warp_zero = np.zeros_like(pers_binary).astype(np.uint8)
+    color_warp = np.dstack((warp_zero, warp_zero, warp_zero))
+
+    # Recast the x and y points into usable format for cv2.fillPoly()
+    pts_left = np.array([np.transpose(np.vstack([left_fitx, ploty]))])
+    pts_right = np.array([np.flipud(np.transpose(np.vstack([right_fitx, ploty])))])
+    pts = np.hstack((pts_left, pts_right))
+
+    # Draw the lane onto the warped blank image
+    cv2.fillPoly(color_warp, np.int_([pts]), (0,255, 0))
+
+    # Warp the blank back to original image space using inverse perspective matrix (Minv)
+    newwarp = cv2.warpPerspective(color_warp, Minv, (undist.shape[1], undist.shape[0])) 
+
+    # Combine the result with the original image
+    result = cv2.addWeighted(undist, 1, newwarp, 0.3, 0)
+
+    return result
 
 
     
