@@ -6,6 +6,38 @@ import matplotlib.image as mpimg
 import pickle
 import os
 
+# Define a class to receive the characteristics of each line detection
+class Line():
+    def __init__(self):
+        # was the line detected in the last iteration?
+        self.detected = False  
+        # x values of the last n fits of the line
+        self.recent_xfitted = [] 
+        #average x values of the fitted line over the last n iterations
+        self.bestx = None     
+        #polynomial coefficients averaged over the last n iterations
+        #self.best_fit = None  
+        self.best_left_fit = None  
+        self.best_right_fit = None  
+        #polynomial coefficients for the most recent fit
+        #self.current_fit = [np.array([False])]  
+        self.current_left_fit = [np.array([False])]  
+        self.current_right_fit = [np.array([False])]  
+        #radius of curvature of the line in some units
+        self.radius_of_curvature_left = None 
+        self.radius_of_curvature_right = None 
+        #distance in meters of vehicle center from the line
+        self.line_base_pos = None 
+        #difference in fit coefficients between last and new fits
+        self.diffs = np.array([0,0,0], dtype='float') 
+        #x values for detected line pixels
+        self.allx = None  
+        #y values for detected line pixels
+        self.ally = None
+
+tracker = Line()
+
+
 #1.  Calibrate the camera
 
 #Read the calibration images filenames
@@ -113,7 +145,7 @@ for fname in test_images:
     #Apply fit
     #print(pers_binary.shape)
     [left_fitx, right_fitx, ploty,
-            left_curverad, right_curverad] = find_lines(pers_binary,fname)
+            left_curverad, right_curverad] = find_lines(pers_binary,fname,tracker)
 
     warp_zero = np.zeros_like(pers_binary).astype(np.uint8)
     color_warp = np.dstack((warp_zero, warp_zero, warp_zero))
@@ -137,7 +169,6 @@ for fname in test_images:
     #save_fname = os.path.join('output_images', 'rewarp_lines_'+os.path.basename(fname))
     #plt.savefig(save_fname)
     #plt.close(fig2)
-
 
 def process_image(image):
     #undistort the img
@@ -165,7 +196,7 @@ def process_image(image):
 
     #Apply fit
     [left_fitx, right_fitx, ploty,
-            left_curverad, right_curverad] = find_lines(pers_binary,fname)
+            left_curverad, right_curverad] = find_lines(pers_binary,fname,tracker)
 
     warp_zero = np.zeros_like(pers_binary).astype(np.uint8)
     color_warp = np.dstack((warp_zero, warp_zero, warp_zero))
