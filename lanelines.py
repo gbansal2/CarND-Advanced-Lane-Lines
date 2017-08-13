@@ -6,6 +6,11 @@ import matplotlib.image as mpimg
 import pickle
 import os
 
+from pipeline import apply_undist,getSobel
+from pipeline import abs_sobel_thresh,mag_thresh,dir_threshold
+from pipeline import color_transform
+from finding_lines import find_lines
+
 # Define a class to receive the characteristics of each line detection
 class Line():
     def __init__(self):
@@ -67,13 +72,21 @@ for fname in images:
 
 ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
 
-test_images = glob.glob('test_images/test*.jpg')
 outpath = 'output_images'
 
-from pipeline import apply_undist,getSobel
-from pipeline import abs_sobel_thresh,mag_thresh,dir_threshold
-from pipeline import color_transform
-from finding_lines import find_lines
+for fname in images:
+    #read each image
+    img = mpimg.imread(fname)
+
+    #undistort the img
+    undist = apply_undist(img, mtx, dist)
+
+    #write the undist image
+    save_fname = os.path.join(outpath, 'undist_cal_'+os.path.basename(fname))
+    cv2.imwrite(save_fname, undist)
+
+test_images = glob.glob('test_images/test*.jpg')
+
 
 #Get perspective transformation matrix
 str_img =  mpimg.imread('test_images/straight_lines1.jpg')
