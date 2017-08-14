@@ -27,7 +27,8 @@ The goals / steps of this project are the following:
 [image4]: ./output_images/undist_perslines_str_img.png "Warp Example"
 [image5]: ./output_images/pers_binary_test1.jpg "Perspective binary test image"
 [image6]: ./output_images/lines_test1.jpg "lane lines"
-[video1]: ./project_video.mp4 "Video"
+[image7]: ./output_images/rewarp_lines_test1.jpg "Rewarped lane lines"
+[video1]: ./output_videos/project_video_lanes.mp4 "Video"
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/571/view) Points
 
@@ -126,7 +127,7 @@ The radius of curvature values are embedded in the output test images.
 
 #### 6. Provide an example image of your result plotted back down onto the road such that the lane area is identified clearly.
 
-I implemented this step in lines # through # in my code in `yet_another_file.py` in the function `map_lane()`.  Here is an example of my result on a test image:
+I implemented this step in lines #163 through #184 in my code in `lanelines.py`. The code follows the algorithm provided in video lectures. Here is an example of my result on a test image, with radius of curvature embedded:
 
 ![alt text][image7]
 
@@ -136,7 +137,7 @@ I implemented this step in lines # through # in my code in `yet_another_file.py`
 
 #### 1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (wobbly lines are ok but no catastrophic failures that would cause the car to drive off the road!).
 
-Here's a [link to my video result](./project_video.mp4)
+Here's a [link to my video result](./output_videos/project_video_lanes.mp4)
 
 ---
 
@@ -145,3 +146,5 @@ Here's a [link to my video result](./project_video.mp4)
 #### 1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
 
 Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
+
+In the initial implementation, there were several frames for which the lanes were not properly detected. 
