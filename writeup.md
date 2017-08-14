@@ -24,9 +24,9 @@ The goals / steps of this project are the following:
 [image2a]: ./test_images/test1.jpg "Road Transformed"
 [image2b]: ./output_images/undist_test1.jpg "Undistorted Road Transformed"
 [image3]: ./output_images/gradient_color_thres_imgtest1.jpg "Binary Example"
-[image4]: ./examples/warped_straight_lines.jpg "Warp Example"
-[image5]: ./examples/color_fit_lines.jpg "Fit Visual"
-[image6]: ./examples/example_output.jpg "Output"
+[image4]: ./output_images/undist_perslines_str_img.png "Warp Example"
+[image5]: ./output_images/pers_binary_test1.jpg "Perspective binary test image"
+[image6]: ./output_images/lines_test1.jpg "lane lines"
 [video1]: ./project_video.mp4 "Video"
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/571/view) Points
@@ -81,49 +81,54 @@ In the binary image, the blue color corresponds to color threshold, and green co
 
 #### 3. Describe how (and identify where in your code) you performed a perspective transform and provide an example of a transformed image.
 
-The code for my perspective transform includes a function called `warper()`, which appears in lines 1 through 8 in the file `example.py` (output_images/examples/example.py) (or, for example, in the 3rd code cell of the IPython notebook).  The `warper()` function takes as inputs an image (`img`), as well as source (`src`) and destination (`dst`) points.  I chose the hardcode the source and destination points in the following manner:
+The code for my perspective transform includes a call to function cv2.getPerspectiveTransform which takes points from the source and destination planes and outputs a transformation matrix. For this project, we need both the forward and the inverse transformation matrices. This code appears on lines #92 to #103 in `lanelines.py` file.
 
-```python
-src = np.float32(
-    [[(img_size[0] / 2) - 55, img_size[1] / 2 + 100],
-    [((img_size[0] / 6) - 10), img_size[1]],
-    [(img_size[0] * 5 / 6) + 60, img_size[1]],
-    [(img_size[0] / 2 + 55), img_size[1] / 2 + 100]])
-dst = np.float32(
-    [[(img_size[0] / 4), 0],
-    [(img_size[0] / 4), img_size[1]],
-    [(img_size[0] * 3 / 4), img_size[1]],
-    [(img_size[0] * 3 / 4), 0]])
-```
-
-This resulted in the following source and destination points:
+I chose to hardcode the source and destination points in the following manner:
 
 | Source        | Destination   | 
 |:-------------:|:-------------:| 
-| 585, 460      | 320, 0        | 
-| 203, 720      | 320, 720      |
-| 1127, 720     | 960, 720      |
-| 695, 460      | 960, 0        |
+| 200, 720      | 420, 720      | 
+| 590, 450      | 420, 0        |
+| 680, 450      | 870, 0        |
+| 1120, 720     | 870, 720      |
 
-I verified that my perspective transform was working as expected by drawing the `src` and `dst` points onto a test image and its warped counterpart to verify that the lines appear parallel in the warped image.
+I verified that my perspective transform was working as expected by drawing the `src` and `dst` points onto a test image and its warped counterpart to verify that the lines appear parallel in the warped image. This is shown in the image below. The blue lines are for source and red lines are for destination.
 
 ![alt text][image4]
 
 #### 4. Describe how (and identify where in your code) you identified lane-line pixels and fit their positions with a polynomial?
 
-Then I did some other stuff and fit my lane lines with a 2nd order polynomial kinda like this:
+Using the perspective transformation matrix, I transformed the test images into a `top-view` image. An example of test image looks like this:
 
 ![alt text][image5]
 
+Then using the algorithm provided in the lectures, I identified the pixels corresponding to lane lines. This method consists of two steps:
+
+1. Generate a histogram of bottom half pixels of the image.
+
+2. Use a sliding window method to identify the pixels corresponding to peaks in the histogram.
+
+Finally, a second-order polynomial fit is generated to approximate the pixels in the lane lines. All this code is present in the file `finding_lines.py`.
+
+Here's an image of the detected lane lines in the test image:
+
+![alt text][image6]
+
 #### 5. Describe how (and identify where in your code) you calculated the radius of curvature of the lane and the position of the vehicle with respect to center.
 
-I did this in lines # through # in my code in `my_other_file.py`
+After identifying the lane lines and fitting a polynomial to the lane lines, I next calculate the radius of curvature of the lines. For this, the polynomial fit must be made in the physical coordinantes and not in the pixel coordinates. For this, the pixels are scaled to physical dimensions, and a new fit is generated. Then using the formula provided in video lectures, I calculate the radius of curvature. 
+
+This part of the code is also in the file `finding_lines.py`. 
+
+The radius of curvature values are embedded in the output test images. 
+
+
 
 #### 6. Provide an example image of your result plotted back down onto the road such that the lane area is identified clearly.
 
 I implemented this step in lines # through # in my code in `yet_another_file.py` in the function `map_lane()`.  Here is an example of my result on a test image:
 
-![alt text][image6]
+![alt text][image7]
 
 ---
 
