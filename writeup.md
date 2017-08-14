@@ -147,4 +147,11 @@ Here's a [link to my video result](./output_videos/project_video_lanes.mp4)
 
 Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
 
-In the initial implementation, there were several frames for which the lanes were not properly detected. 
+In the initial implementation, there were several frames for which the lanes were not properly detected. I detected these frames by using a thresholding of the radius of curvature. If the radius was calculated to be less than 100 or greater than 8000, this was identified as "bad" detection. 
+
+I used an instatiation of the `Line()` class provided in the lectures to track the current fit values, and the last "good" fit values. If in the current frame the lines were not detected properly, I falled back on using the previous "good" fit.
+
+One optimization I did was to not re-detect the lane lines from scratch for each frame. If for previous frame, the lane line was detected properly, then I used the location of previously detected lines to limit the search for lines in the current frame.
+
+After doing these, the pipeline does a decent job of identifying lane lines in the project_video. There still are a few frames for which the lanes are not accurately detected. To make it more robust, we can do futher tuning of the gradient and color thresholding.
+
