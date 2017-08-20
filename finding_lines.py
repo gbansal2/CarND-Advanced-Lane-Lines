@@ -103,9 +103,15 @@ def find_lines(binary_warped,fname,tracker,frame_count):
         ratio_second_deg = abs(right_fit[0]/left_fit[0])
         #print("ratio_second_deg = ", ratio_second_deg)
 
+        y_pix = binary_warped.shape[0]
+        left_lane = left_fit[0]*y_pix**2 + left_fit[1]*y_pix + left_fit[2]
+        right_lane = right_fit[0]*y_pix**2 + right_fit[1]*y_pix + right_fit[2]
+        lane_width = np.absolute((right_lane - left_lane)*xm_per_pix)
+
         print("left_curverad = ", left_curverad,
                 "right_curverad = ", right_curverad,
-                "ratio_second_deg = ", ratio_second_deg)
+                "ratio_second_deg = ", ratio_second_deg,
+                "lane width = ", lane_width)
 
 #For first frame
         if (frame_count == 0):
@@ -120,7 +126,9 @@ def find_lines(binary_warped,fname,tracker,frame_count):
             if ((left_curverad > 15000.0) or (left_curverad < 200.0)
                     or (right_curverad > 15000.0) or (right_curverad < 200.0)  
                     or (ratio_second_deg > 8.0) or
-                    (ratio_second_deg < 0.2)):
+                    (ratio_second_deg < 0.2) or
+                    (lane_width < 2.0) or 
+                    (lane_width > 4.0)):
                 tracker.detected = False
                 print("Using previous good fit")
                 tracker.current_left_fit = left_fit
@@ -223,14 +231,23 @@ def find_lines(binary_warped,fname,tracker,frame_count):
         ratio_second_deg = abs(right_fit[0]/left_fit[0])
         #print("ratio_second_deg = ", ratio_second_deg)
 
+        y_pix = binary_warped.shape[0]
+        left_lane = left_fit[0]*y_pix**2 + left_fit[1]*y_pix + left_fit[2]
+        right_lane = right_fit[0]*y_pix**2 + right_fit[1]*y_pix + right_fit[2]
+        lane_width = np.absolute(right_lane - left_lane)*xm_per_pix
+        #US highway lane width is 3.7m
+
         print("left_curverad = ", left_curverad,
                 "right_curverad = ", right_curverad,
-                "ratio_second_deg = ", ratio_second_deg)
+                "ratio_second_deg = ", ratio_second_deg,
+                "lane_width = ", lane_width)
 
         if ((left_curverad > 15000.0) or (left_curverad < 200.0)
                 or (right_curverad > 15000.0) or (right_curverad < 200.0)  
                 or (ratio_second_deg > 8.0) or
-                (ratio_second_deg < 0.2)):
+                (ratio_second_deg < 0.2) or
+                (lane_width < 2.0) or 
+                (lane_width > 4.0)):
             tracker.detected = False
             print("Using prev fit")
 
