@@ -11,6 +11,8 @@ from pipeline import abs_sobel_thresh,mag_thresh,dir_threshold
 from pipeline import color_transform
 from finding_lines import find_lines
 
+frame_count = 0
+
 # Define a class to receive the characteristics of each line detection
 class Line():
     def __init__(self):
@@ -39,6 +41,7 @@ class Line():
         self.allx = None  
         #y values for detected line pixels
         self.ally = None
+        self.frame_count = 0
 
 tracker = Line()
 
@@ -158,7 +161,9 @@ for fname in test_images:
     #Apply fit
     #print(pers_binary.shape)
     [left_fitx, right_fitx, ploty,
-            left_curverad, right_curverad] = find_lines(pers_binary,fname,tracker)
+            left_curverad, right_curverad,offset_m] = find_lines(pers_binary,fname,tracker,frame_count)
+
+    frame_count = frame_count+1
 
     warp_zero = np.zeros_like(pers_binary).astype(np.uint8)
     color_warp = np.dstack((warp_zero, warp_zero, warp_zero))
@@ -175,10 +180,13 @@ for fname in test_images:
     newwarp = cv2.warpPerspective(color_warp, Minv, (undist.shape[1], undist.shape[0])) 
     # Combine the result with the original image
     result = cv2.addWeighted(undist, 1, newwarp, 0.3, 0)
+    cv2.putText(result,'radius of curavture: (L): %6.2f m (R): %6.2f m' %(left_curverad,right_curverad),(50,50), cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,255),2)
+    cv2.putText(result,'offset from center: %6.2f m ' %(offset_m),(50,100), cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,255),2)
+
     #fig2 = plt.figure()
     #plt.imshow(result)
     #plt.text(600,150,'left curvature   = %6.2f m\nright curvature = %6.2f m \n' %(left_curverad,right_curverad), color='white')
-    ##plt.show()
+    #plt.show()
     #save_fname = os.path.join('output_images', 'rewarp_lines_'+os.path.basename(fname))
     #plt.savefig(save_fname)
     #plt.close(fig2)
@@ -209,7 +217,10 @@ def process_image(image):
 
     #Apply fit
     [left_fitx, right_fitx, ploty,
-            left_curverad, right_curverad] = find_lines(pers_binary,fname,tracker)
+            left_curverad, right_curverad,offset_m] = find_lines(pers_binary,fname,tracker,tracker.frame_count)
+    #print("frame number = ", frame_count)
+
+    tracker.frame_count = tracker.frame_count+1
 
     warp_zero = np.zeros_like(pers_binary).astype(np.uint8)
     color_warp = np.dstack((warp_zero, warp_zero, warp_zero))
@@ -227,6 +238,9 @@ def process_image(image):
 
     # Combine the result with the original image
     result = cv2.addWeighted(undist, 1, newwarp, 0.3, 0)
+    cv2.putText(result,'radius of curavture: (L): %6.2f m (R): %6.2f m' %(left_curverad,right_curverad),(50,50), cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,255),2)
+    cv2.putText(result,'offset from center: %6.2f m ' %(offset_m),(50,100), cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,255),2)
+
 
     return result
 

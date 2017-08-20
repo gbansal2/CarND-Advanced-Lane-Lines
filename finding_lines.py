@@ -4,8 +4,7 @@ import cv2
 import matplotlib.pyplot as plt
 import os
 
-
-def find_lines(binary_warped,fname,tracker):
+def find_lines(binary_warped,fname,tracker,frame_count):
 
     # Assuming you have created a warped binary image called "binary_warped"
     # Take a histogram of the bottom half of the image
@@ -100,21 +99,12 @@ def find_lines(binary_warped,fname,tracker):
         left_curverad = ((1 + (2*left_fit_cr[0]*y_eval*ym_per_pix + left_fit_cr[1])**2)**1.5) / np.absolute(2*left_fit_cr[0])
         right_curverad = ((1 + (2*right_fit_cr[0]*y_eval*ym_per_pix + right_fit_cr[1])**2)**1.5) / np.absolute(2*right_fit_cr[0])
 
+        ratio_second_deg = right_fit[0]/left_fit[0]
+        #print("ratio_second_deg = ", ratio_second_deg)
 
 
-        if ((left_curverad > 8000.0) or (left_curverad < 100.0)
-                or (right_curverad > 8000.0) or (right_curverad < 100.0)):
-            tracker.detected = False
-            tracker.current_left_fit = left_fit
-            tracker.current_right_fit = right_fit
-            left_fit = tracker.best_left_fit
-            right_fit = tracker.best_right_fit
-
-            left_fitx = left_fit[0]*ploty**2 + left_fit[1]*ploty + left_fit[2]
-            right_fitx = right_fit[0]*ploty**2 + right_fit[1]*ploty + right_fit[2]
-            left_curverad = tracker.radius_of_curvature_left
-            right_curverad = tracker.radius_of_curvature_right
-        else:
+#For first frame
+        if (frame_count == 0):
             tracker.detected = True
             tracker.current_left_fit = left_fit
             tracker.current_right_fit = right_fit
@@ -122,6 +112,47 @@ def find_lines(binary_warped,fname,tracker):
             tracker.best_right_fit = right_fit
             tracker.radius_of_curvature_left = left_curverad
             tracker.radius_of_curvature_right = right_curverad
+        else:
+            if ((left_curverad > 4000.0) or (left_curverad < 300.0)
+                    or (right_curverad > 4000.0) or (right_curverad < 300.0)  
+                    or (ratio_second_deg > 2.0) or
+                    (ratio_second_deg < 0.5)):
+                tracker.detected = False
+                tracker.current_left_fit = left_fit
+                tracker.current_right_fit = right_fit
+                left_fit = tracker.best_left_fit
+                right_fit = tracker.best_right_fit
+                left_fitx = left_fit[0]*ploty**2 + left_fit[1]*ploty + left_fit[2]
+                right_fitx = right_fit[0]*ploty**2 + right_fit[1]*ploty + right_fit[2]
+                left_curverad = tracker.radius_of_curvature_left
+                right_curverad = tracker.radius_of_curvature_right
+            else:
+                tracker.detected = True
+                tracker.current_left_fit = left_fit
+                tracker.current_right_fit = right_fit
+                tracker.best_left_fit = left_fit
+                tracker.best_right_fit = right_fit
+                tracker.radius_of_curvature_left = left_curverad
+                tracker.radius_of_curvature_right = right_curverad
+
+
+
+        #compute center of camera (pixels)
+        car_pos_pix = binary_warped.shape[1]/2.0
+        y_pix = binary_warped.shape[0]
+        left_lane = left_fit[0]*y_pix**2 + left_fit[1]*y_pix + left_fit[2]
+        right_lane = right_fit[0]*y_pix**2 + right_fit[1]*y_pix + right_fit[2]
+        center_lane = (left_lane + right_lane)/2.0
+        offset_pix = (car_pos_pix - center_lane)
+        offset_m = offset_pix*xm_per_pix
+        #print("left_lane = ", left_lane,
+        #        "right_lane = ", right_lane,
+        #        "car_ps = ", car_pos_pix,
+        #        "offset_pix = ", offset_pix,
+        #        "offset_m = ", offset_m)
+
+
+
 
         # Now our radius of curvature is in meters
         print(left_curverad, 'm', right_curverad, 'm')
@@ -139,7 +170,7 @@ def find_lines(binary_warped,fname,tracker):
         #plt.savefig(save_fname)
         #plt.close(fig1)
 
-        return [left_fitx, right_fitx, ploty, left_curverad, right_curverad]
+        return [left_fitx, right_fitx, ploty, left_curverad, right_curverad,offset_m]
     else:
         nonzero = binary_warped.nonzero()
         nonzeroy = np.array(nonzero[0])
@@ -182,8 +213,13 @@ def find_lines(binary_warped,fname,tracker):
         left_curverad = ((1 + (2*left_fit_cr[0]*y_eval*ym_per_pix + left_fit_cr[1])**2)**1.5) / np.absolute(2*left_fit_cr[0])
         right_curverad = ((1 + (2*right_fit_cr[0]*y_eval*ym_per_pix + right_fit_cr[1])**2)**1.5) / np.absolute(2*right_fit_cr[0])
 
-        if ((left_curverad > 8000.0) or (left_curverad < 100.0)
-                or (right_curverad > 8000.0) or (right_curverad < 100.0)):
+        ratio_second_deg = right_fit[0]/left_fit[0]
+        #print("ratio_second_deg = ", ratio_second_deg)
+
+        if ((left_curverad > 4000.0) or (left_curverad < 300.0)
+                or (right_curverad > 4000.0) or (right_curverad < 300.0)  
+                or (ratio_second_deg > 2.0) or
+                (ratio_second_deg < 0.5)):
             tracker.detected = False
 
             tracker.current_left_fit = left_fit
@@ -209,5 +245,14 @@ def find_lines(binary_warped,fname,tracker):
         # Now our radius of curvature is in meters
         print(left_curverad, 'm', right_curverad, 'm')
 
-        return [left_fitx, right_fitx, ploty, left_curverad, right_curverad]
+        car_pos_pix = binary_warped.shape[1]/2.0
+        y_pix = binary_warped.shape[0]
+        left_lane = left_fit[0]*y_pix**2 + left_fit[1]*y_pix + left_fit[2]
+        right_lane = right_fit[0]*y_pix**2 + right_fit[1]*y_pix + right_fit[2]
+        center_lane = (left_lane + right_lane)/2.0
+        offset_pix = (car_pos_pix - center_lane)
+        offset_m = offset_pix*xm_per_pix
+
+
+        return [left_fitx, right_fitx, ploty, left_curverad, right_curverad,offset_m]
 
