@@ -8,7 +8,7 @@ import os
 
 from pipeline import apply_undist,getSobel
 from pipeline import abs_sobel_thresh,mag_thresh,dir_threshold
-from pipeline import color_transform
+from pipeline import color_transform,region_of_interest,b_thres
 from finding_lines import find_lines
 
 frame_count = 0
@@ -97,6 +97,7 @@ undist_str_img = apply_undist(str_img, mtx, dist)
 #src = np.float32([[200,720],[620,430],[650,430],[1120,720]])
 src = np.float32([[200,720],[590,450],[680,450],[1120,720]])
 dst = np.float32([[420,720],[420,0],[870,0],[870,720]])
+#dst = np.float32([[300,720],[300,0],[1000,0],[1000,720]])
 cv2.polylines(undist_str_img, np.int32([src]), True, (255,0,0), thickness=5)
 cv2.polylines(undist_str_img, np.int32([dst]), True, (0,0,255), thickness=5)
 #cv2.imwrite("undist_perslines_str_img.png",undist_str_img)
@@ -134,9 +135,10 @@ for fname in test_images:
     #plt.savefig(save_fname)
 
     #Apply color transform
+    bchannel_thres = b_thres(undist, thresh=(200,255))
     schannel_thres = color_transform(undist, thresh=(130,255))
-    combined_grad_color = np.zeros_like(schannel_thres)
-    combined_grad_color[(combined_grad == 1) | (schannel_thres == 1)] = 1
+    combined_grad_color1 = np.zeros_like(schannel_thres)
+    combined_grad_color1[(combined_grad == 1) | ((schannel_thres == 1) | (bchannel_thres == 1))] = 1
     color_binary = np.dstack((np.zeros_like(schannel_thres),combined_grad, schannel_thres))
 
     #write the gradient and color thresholding binary image
@@ -149,13 +151,20 @@ for fname in test_images:
     #plt.show()
     #plt.savefig(save_fname)
 
+    #Apply masking
+    vertices = np.array([[(100,720),(500,400),(750,400),(1200,720)]],dtype=np.int32)
+    combined_grad_color = region_of_interest(combined_grad_color1, vertices)
+
+    plt.imshow(combined_grad_color)
+    plt.show()
+
     #Apply perspective transform
     img_size = (combined_grad_color.shape[1],combined_grad_color.shape[0])
     pers_binary = cv2.warpPerspective(combined_grad_color, M, img_size)
     #save_fname = os.path.join(outpath, 'pers_binary_'+os.path.basename(fname))
     #plt.figure()
-    #plt.imshow(pers_binary,cmap='gray')
-    #plt.show()
+    plt.imshow(pers_binary,cmap='gray')
+    plt.show()
     #plt.savefig(save_fname)
 
     #Apply fit
@@ -184,9 +193,9 @@ for fname in test_images:
     cv2.putText(result,'offset from center: %6.2f m ' %(offset_m),(50,100), cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,255),2)
 
     #fig2 = plt.figure()
-    #plt.imshow(result)
+    plt.imshow(result)
     #plt.text(600,150,'left curvature   = %6.2f m\nright curvature = %6.2f m \n' %(left_curverad,right_curverad), color='white')
-    #plt.show()
+    plt.show()
     #save_fname = os.path.join('output_images', 'rewarp_lines_'+os.path.basename(fname))
     #plt.savefig(save_fname)
     #plt.close(fig2)
@@ -207,9 +216,18 @@ def process_image(image):
     combined_grad[((gradx == 1) & (grady == 1)) & ((mag_binary == 1) & (dir_binary == 1))] = 1
 
     #Apply color transform
+    #schannel_thres = color_transform(undist, thresh=(130,255))
+    #combined_grad_color1 = np.zeros_like(schannel_thres)
+    #combined_grad_color1[(combined_grad == 1) | (schannel_thres == 1)] = 1
+    bchannel_thres = b_thres(undist, thresh=(200,255))
     schannel_thres = color_transform(undist, thresh=(130,255))
-    combined_grad_color = np.zeros_like(schannel_thres)
-    combined_grad_color[(combined_grad == 1) | (schannel_thres == 1)] = 1
+    combined_grad_color1 = np.zeros_like(schannel_thres)
+    combined_grad_color1[(combined_grad == 1) | ((schannel_thres == 1) | (bchannel_thres == 1))] = 1
+    color_binary = np.dstack((np.zeros_like(schannel_thres),combined_grad, schannel_thres))
+
+    #Apply masking
+    vertices = np.array([[(100,720),(500,400),(750,400),(1200,720)]],dtype=np.int32)
+    combined_grad_color = region_of_interest(combined_grad_color1, vertices)
 
     #Apply perspective transform
     img_size = (combined_grad_color.shape[1],combined_grad_color.shape[0])

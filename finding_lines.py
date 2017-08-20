@@ -13,6 +13,7 @@ def find_lines(binary_warped,fname,tracker,frame_count):
     out_img = np.dstack((binary_warped, binary_warped, binary_warped))*255
 
     if tracker.detected == False:
+        print("Full search")
     # Find the peak of the left and right halves of the histogram
     # These will be the starting point for the left and right lines
         midpoint = np.int(histogram.shape[0]/2)
@@ -118,6 +119,7 @@ def find_lines(binary_warped,fname,tracker,frame_count):
                     or (ratio_second_deg > 2.0) or
                     (ratio_second_deg < 0.5)):
                 tracker.detected = False
+                print("Using previous good fit")
                 tracker.current_left_fit = left_fit
                 tracker.current_right_fit = right_fit
                 left_fit = tracker.best_left_fit
@@ -128,6 +130,7 @@ def find_lines(binary_warped,fname,tracker,frame_count):
                 right_curverad = tracker.radius_of_curvature_right
             else:
                 tracker.detected = True
+                print("Using new good fit")
                 tracker.current_left_fit = left_fit
                 tracker.current_right_fit = right_fit
                 tracker.best_left_fit = left_fit
@@ -172,6 +175,7 @@ def find_lines(binary_warped,fname,tracker,frame_count):
 
         return [left_fitx, right_fitx, ploty, left_curverad, right_curverad,offset_m]
     else:
+        print("Margin search")
         nonzero = binary_warped.nonzero()
         nonzeroy = np.array(nonzero[0])
         nonzerox = np.array(nonzero[1])
@@ -221,16 +225,19 @@ def find_lines(binary_warped,fname,tracker,frame_count):
                 or (ratio_second_deg > 2.0) or
                 (ratio_second_deg < 0.5)):
             tracker.detected = False
+            print("Using prev fit")
 
             tracker.current_left_fit = left_fit
             tracker.current_right_fit = right_fit
+
             left_fit = tracker.best_left_fit
             right_fit = tracker.best_right_fit
 
-            left_fitx = left_fit[0]*ploty**2 + left_fit[1]*ploty + left_fit[2]
-            right_fitx = right_fit[0]*ploty**2 + right_fit[1]*ploty + right_fit[2]
             left_curverad = tracker.radius_of_curvature_left
             right_curverad = tracker.radius_of_curvature_right
+
+            left_fitx = left_fit[0]*ploty**2 + left_fit[1]*ploty + left_fit[2]
+            right_fitx = right_fit[0]*ploty**2 + right_fit[1]*ploty + right_fit[2]
 
         else:
             tracker.detected = True
@@ -241,6 +248,7 @@ def find_lines(binary_warped,fname,tracker,frame_count):
             tracker.best_right_fit = right_fit
             tracker.radius_of_curvature_left = left_curverad
             tracker.radius_of_curvature_right = right_curverad
+            print("Using new good fit")
 
         # Now our radius of curvature is in meters
         print(left_curverad, 'm', right_curverad, 'm')
