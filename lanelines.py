@@ -121,8 +121,8 @@ for fname in test_images:
     sobelx, sobely = getSobel(undist, sobel_kernel=15)
 
     # Apply each of the thresholding functions
-    gradx, grady = abs_sobel_thresh(sobelx, sobely, thresh=(20, 100))
-    mag_binary = mag_thresh(sobelx, sobely, thresh=(20, 100))
+    gradx, grady = abs_sobel_thresh(sobelx, sobely, thresh=(20, 130))
+    mag_binary = mag_thresh(sobelx, sobely, thresh=(20, 130))
     dir_binary = dir_threshold(sobelx, sobely, thresh=(0.7, 1.3))
 
     combined_grad = np.zeros_like(dir_binary)
@@ -131,28 +131,30 @@ for fname in test_images:
     #write the gradient binary image
     #save_fname = os.path.join(outpath, 'gradient_'+os.path.basename(fname))
     #plt.figure()
-    #plt.imshow(combined_grad,cmap='gray')
+    plt.imshow(undist,cmap='gray')
+    plt.show()
     #plt.savefig(save_fname)
 
     #Apply color transform
-    bchannel_thres = b_thres(undist, thresh=(200,255))
-    schannel_thres = color_transform(undist, thresh=(130,255))
+    bchannel_thres = b_thres(undist, thresh=(220,255))
+    schannel_thres = color_transform(undist, thresh=(150,255))
     combined_grad_color1 = np.zeros_like(schannel_thres)
     combined_grad_color1[(combined_grad == 1) | ((schannel_thres == 1) | (bchannel_thres == 1))] = 1
+    #color_binary = np.dstack((np.zeros_like(schannel_thres),combined_grad, schannel_thres, bchannel_thres))
     color_binary = np.dstack((np.zeros_like(schannel_thres),combined_grad, schannel_thres))
 
     #write the gradient and color thresholding binary image
     #save_fname = os.path.join(outpath, 'gradient_color_thres_img'+os.path.basename(fname))
     #plt.figure()
     #plt.subplot(121)
-    #plt.imshow(color_binary)
+    plt.imshow(color_binary)
     #plt.subplot(122)
     #plt.imshow(undist)
-    #plt.show()
+    plt.show()
     #plt.savefig(save_fname)
 
     #Apply masking
-    vertices = np.array([[(100,720),(500,400),(750,400),(1200,720)]],dtype=np.int32)
+    vertices = np.array([[(100,720),(600,450),(750,450),(1200,720)]],dtype=np.int32)
     combined_grad_color = region_of_interest(combined_grad_color1, vertices)
 
     plt.imshow(combined_grad_color)
@@ -161,7 +163,7 @@ for fname in test_images:
     #Apply perspective transform
     img_size = (combined_grad_color.shape[1],combined_grad_color.shape[0])
     pers_binary = cv2.warpPerspective(combined_grad_color, M, img_size)
-    #save_fname = os.path.join(outpath, 'pers_binary_'+os.path.basename(fname))
+    save_fname = os.path.join(outpath, 'pers_binary_'+os.path.basename(fname))
     #plt.figure()
     plt.imshow(pers_binary,cmap='gray')
     plt.show()
@@ -192,11 +194,11 @@ for fname in test_images:
     cv2.putText(result,'radius of curavture: (L): %6.2f m (R): %6.2f m' %(left_curverad,right_curverad),(50,50), cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,255),2)
     cv2.putText(result,'offset from center: %6.2f m ' %(offset_m),(50,100), cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,255),2)
 
-    #fig2 = plt.figure()
+    #plt.figure()
     plt.imshow(result)
     #plt.text(600,150,'left curvature   = %6.2f m\nright curvature = %6.2f m \n' %(left_curverad,right_curverad), color='white')
     plt.show()
-    #save_fname = os.path.join('output_images', 'rewarp_lines_'+os.path.basename(fname))
+    save_fname = os.path.join('output_images', 'rewarp_lines_'+os.path.basename(fname))
     #plt.savefig(save_fname)
     #plt.close(fig2)
 
@@ -226,7 +228,7 @@ def process_image(image):
     color_binary = np.dstack((np.zeros_like(schannel_thres),combined_grad, schannel_thres))
 
     #Apply masking
-    vertices = np.array([[(100,720),(500,400),(750,400),(1200,720)]],dtype=np.int32)
+    vertices = np.array([[(100,720),(600,450),(750,450),(1200,720)]],dtype=np.int32)
     combined_grad_color = region_of_interest(combined_grad_color1, vertices)
 
     #Apply perspective transform

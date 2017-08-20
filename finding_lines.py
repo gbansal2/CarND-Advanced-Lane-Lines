@@ -100,9 +100,12 @@ def find_lines(binary_warped,fname,tracker,frame_count):
         left_curverad = ((1 + (2*left_fit_cr[0]*y_eval*ym_per_pix + left_fit_cr[1])**2)**1.5) / np.absolute(2*left_fit_cr[0])
         right_curverad = ((1 + (2*right_fit_cr[0]*y_eval*ym_per_pix + right_fit_cr[1])**2)**1.5) / np.absolute(2*right_fit_cr[0])
 
-        ratio_second_deg = right_fit[0]/left_fit[0]
+        ratio_second_deg = abs(right_fit[0]/left_fit[0])
         #print("ratio_second_deg = ", ratio_second_deg)
 
+        print("left_curverad = ", left_curverad,
+                "right_curverad = ", right_curverad,
+                "ratio_second_deg = ", ratio_second_deg)
 
 #For first frame
         if (frame_count == 0):
@@ -114,10 +117,10 @@ def find_lines(binary_warped,fname,tracker,frame_count):
             tracker.radius_of_curvature_left = left_curverad
             tracker.radius_of_curvature_right = right_curverad
         else:
-            if ((left_curverad > 4000.0) or (left_curverad < 300.0)
-                    or (right_curverad > 4000.0) or (right_curverad < 300.0)  
-                    or (ratio_second_deg > 2.0) or
-                    (ratio_second_deg < 0.5)):
+            if ((left_curverad > 15000.0) or (left_curverad < 200.0)
+                    or (right_curverad > 15000.0) or (right_curverad < 200.0)  
+                    or (ratio_second_deg > 8.0) or
+                    (ratio_second_deg < 0.2)):
                 tracker.detected = False
                 print("Using previous good fit")
                 tracker.current_left_fit = left_fit
@@ -161,14 +164,14 @@ def find_lines(binary_warped,fname,tracker,frame_count):
         print(left_curverad, 'm', right_curverad, 'm')
         # Example values: 632.1 m    626.2 m
 
-        #fig1 = plt.figure()
+        #plt.figure()
         #plt.imshow(out_img)
         #plt.plot(left_fitx, ploty, color='yellow')
         #plt.plot(right_fitx, ploty, color='yellow')
         #plt.xlim(0, 1280)
         #plt.ylim(720, 0)
         ##plt.text(700,200,'left curvature  = %6.2f m \nright_curvature = %6.2f m \n' %(left_curverad,right_curverad), color='white')
-        ####plt.show()
+        #plt.show()
         #save_fname = os.path.join('output_images', 'fits_'+os.path.basename(fname))
         #plt.savefig(save_fname)
         #plt.close(fig1)
@@ -217,13 +220,17 @@ def find_lines(binary_warped,fname,tracker,frame_count):
         left_curverad = ((1 + (2*left_fit_cr[0]*y_eval*ym_per_pix + left_fit_cr[1])**2)**1.5) / np.absolute(2*left_fit_cr[0])
         right_curverad = ((1 + (2*right_fit_cr[0]*y_eval*ym_per_pix + right_fit_cr[1])**2)**1.5) / np.absolute(2*right_fit_cr[0])
 
-        ratio_second_deg = right_fit[0]/left_fit[0]
+        ratio_second_deg = abs(right_fit[0]/left_fit[0])
         #print("ratio_second_deg = ", ratio_second_deg)
 
-        if ((left_curverad > 4000.0) or (left_curverad < 300.0)
-                or (right_curverad > 4000.0) or (right_curverad < 300.0)  
-                or (ratio_second_deg > 2.0) or
-                (ratio_second_deg < 0.5)):
+        print("left_curverad = ", left_curverad,
+                "right_curverad = ", right_curverad,
+                "ratio_second_deg = ", ratio_second_deg)
+
+        if ((left_curverad > 15000.0) or (left_curverad < 200.0)
+                or (right_curverad > 15000.0) or (right_curverad < 200.0)  
+                or (ratio_second_deg > 8.0) or
+                (ratio_second_deg < 0.2)):
             tracker.detected = False
             print("Using prev fit")
 
@@ -261,6 +268,18 @@ def find_lines(binary_warped,fname,tracker,frame_count):
         offset_pix = (car_pos_pix - center_lane)
         offset_m = offset_pix*xm_per_pix
 
+        #fig3 = plt.figure()
+        #plt.imshow(out_img)
+        #plt.show()
+        #plt.plot(left_fitx, ploty, color='yellow')
+        #plt.plot(right_fitx, ploty, color='yellow')
+        #plt.xlim(0, 1280)
+        #plt.ylim(720, 0)
+        ##plt.text(700,200,'left curvature  = %6.2f m \nright_curvature = %6.2f m \n' %(left_curverad,right_curverad), color='white')
+        #plt.show()
+        #save_fname = os.path.join('output_images', 'fits_'+os.path.basename(fname))
+        #plt.savefig(save_fname)
+        #plt.close(fig3)
 
         return [left_fitx, right_fitx, ploty, left_curverad, right_curverad,offset_m]
 
