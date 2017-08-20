@@ -164,16 +164,16 @@ def find_lines(binary_warped,fname,tracker,frame_count):
         print(left_curverad, 'm', right_curverad, 'm')
         # Example values: 632.1 m    626.2 m
 
-        #plt.figure()
-        #plt.imshow(out_img)
-        #plt.plot(left_fitx, ploty, color='yellow')
-        #plt.plot(right_fitx, ploty, color='yellow')
-        #plt.xlim(0, 1280)
-        #plt.ylim(720, 0)
+        plt.figure()
+        plt.imshow(out_img)
+        plt.plot(left_fitx, ploty, color='yellow')
+        plt.plot(right_fitx, ploty, color='yellow')
+        plt.xlim(0, 1280)
+        plt.ylim(720, 0)
         ##plt.text(700,200,'left curvature  = %6.2f m \nright_curvature = %6.2f m \n' %(left_curverad,right_curverad), color='white')
         #plt.show()
-        #save_fname = os.path.join('output_images', 'fits_'+os.path.basename(fname))
-        #plt.savefig(save_fname)
+        save_fname = os.path.join('output_images', 'fits_'+os.path.basename(fname))
+        plt.savefig(save_fname)
         #plt.close(fig1)
 
         return [left_fitx, right_fitx, ploty, left_curverad, right_curverad,offset_m]
@@ -268,18 +268,18 @@ def find_lines(binary_warped,fname,tracker,frame_count):
         offset_pix = (car_pos_pix - center_lane)
         offset_m = offset_pix*xm_per_pix
 
-        #fig3 = plt.figure()
-        #plt.imshow(out_img)
+        fig1 = plt.figure()
+        plt.imshow(out_img)
         #plt.show()
-        #plt.plot(left_fitx, ploty, color='yellow')
-        #plt.plot(right_fitx, ploty, color='yellow')
-        #plt.xlim(0, 1280)
-        #plt.ylim(720, 0)
+        plt.plot(left_fitx, ploty, color='yellow')
+        plt.plot(right_fitx, ploty, color='yellow')
+        plt.xlim(0, 1280)
+        plt.ylim(720, 0)
         ##plt.text(700,200,'left curvature  = %6.2f m \nright_curvature = %6.2f m \n' %(left_curverad,right_curverad), color='white')
         #plt.show()
-        #save_fname = os.path.join('output_images', 'fits_'+os.path.basename(fname))
-        #plt.savefig(save_fname)
-        #plt.close(fig3)
+        save_fname = os.path.join('output_images', 'fits_'+os.path.basename(fname))
+        plt.savefig(save_fname)
+        plt.close(fig1)
 
         return [left_fitx, right_fitx, ploty, left_curverad, right_curverad,offset_m]
 
